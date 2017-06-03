@@ -45,6 +45,7 @@ function generate(filePath) {
 }
 
 async function copyProtectedFiles(files, destFolder) {
+  await fs.remove(destFolder)
   for (let i = 0, len = files.length; i < len; i += 1) {
     await fs.copy(files[i], path.join(destFolder, path.basename(files[i])))
   }
