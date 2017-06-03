@@ -1,22 +1,33 @@
 /* global $ */
+/* eslint no-param-reassign: 0 */
 const { app, dialog } = require("electron").remote
 const fs = require("fs")
 const path = require("path")
 const homedir = require("os").homedir()
-const extracter = require("./extract-from-excel.js")
+const extractor = require("./extractor.js")
+
+let abortExtracting = false
 
 function processFile(file, ws, encoding, protectedFiles) {
   return new Promise((resolve) => {
     setTimeout(() => {
-      const { error, array } = extracter.extract(file)
-      if (!error) {
-        extracter.writeToCSV(ws, array, encoding)
-      } else if (error === "File is password-protected") {
+      const extname = path.extname(file)
+      let obj = {}
+      if (/^\.rtf$/i.test(extname)) {
+        obj = extractor.extractFromRtf(file)
+      } else if (/^\.(xls|xlsx)$/i.test(extname)) {
+        obj = extractor.extractFromExcel(file)
+      } else {
+        obj.error = "unsupported format"
+      }
+      if (!obj.error) {
+        extractor.writeToCSV(ws, obj.array, encoding)
+      } else if (obj.error === "File is password-protected") {
         protectedFiles.push(file)
       } else {
-        extracter.writeToCSV(ws, [[file, error]], encoding)
+        extractor.writeToCSV(ws, [[file, obj.error]], encoding)
       }
-      resolve(error)
+      resolve(obj.error)
     }, 0)
   })
 }
@@ -24,8 +35,10 @@ function processFile(file, ws, encoding, protectedFiles) {
 function toggleSteps(action) {
   if (action === "show") {
     document.getElementById("done-steps").disabled = true
+    document.getElementById("abort-steps").disabled = false
     document.getElementById("summary-step").style.display = "none"
     document.querySelector("#extracting-step i").classList.add("loading")
+    document.querySelector("#extracting-step").classList.remove("completed")
   }
   $(".extracting.modal").modal({
     dimmerSettings: {
@@ -60,26 +73,32 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("process-btn").addEventListener("click", async () => {
     const srcFolder = document.getElementById("src-folder-btn").previousElementSibling.value
     const saveFolder = document.getElementById("save-folder-btn").previousElementSibling.value
-    const files = await extracter.globFolder(srcFolder)
+    const files = await extractor.globFolder(srcFolder)
     if (!files) return
     toggleSteps("show")
-    const ws = fs.createWriteStream(path.join(saveFolder, "data-extracter-out.csv"))
-    const encoding = extracter.getEncoding()
-    extracter.writeCSVHeader(ws, encoding)
+    const ws = fs.createWriteStream(path.join(saveFolder, "data-extractor-out.csv"))
+    const encoding = extractor.getEncoding()
+    extractor.writeCSVHeader(ws, encoding)
     const protectedFiles = []
     let processedCounter = 0
     const span = document.getElementById("processed-indicate")
     const len = files.length
     const startTime = Date.now()
     for (let i = 0; i < len; i += 1) {
+      if (abortExtracting) {
+        break
+      }
       const error = await processFile(files[i], ws, encoding, protectedFiles)
       processedCounter += 1
       span.innerHTML = `${processedCounter}/${len}`
     }
     document.querySelector("#extracting-step i").classList.remove("loading")
+    document.querySelector("#extracting-step").classList.add("completed")
     document.querySelector("#summary-step .description").innerHTML = `${(Date.now() - startTime) / 1000} Seconds`
     document.getElementById("summary-step").style.display = null
     document.getElementById("done-steps").disabled = false
+    document.getElementById("abort-steps").disabled = true
+    abortExtracting = false
     ws.end()
   })
 
@@ -91,5 +110,9 @@ document.addEventListener("DOMContentLoaded", () => {
         },
       })
       .modal("show")
+  })
+
+  document.getElementById("abort-steps").addEventListener("click", () => {
+    abortExtracting = true
   })
 })
