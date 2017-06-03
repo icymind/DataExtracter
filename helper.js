@@ -2,6 +2,7 @@ const os = require("os")
 const path = require("path")
 const fs = require("fs-extra")
 
+const globFolder = require("./extractor.js").globFolder
 const xlsxFolder = "protect-xlsx"
 const xlsm = path.join(__dirname, "helper.xlsm")
 const template = `
@@ -50,11 +51,19 @@ function copyXLSM() {
   return fs.copy(xlsm, path.join(os.tmpdir(), path.basename(xlsm)))
 }
 
-async function protectedFilesSaveAs(files) {
+async function protectedFilesSaveAs(f) {
+  let files
+  if (typeof f === "string") {
+    files = await globFolder(f)
+  } else {
+    files = f
+  }
   await copyProtectedFiles(files)
   await generate()
   await copyXLSM()
 }
+console.log(os.tmpdir())
+protectedFilesSaveAs("/Users/simon/Downloads/protect")
 
 module.exports = {
   protectedFilesSaveAs,
