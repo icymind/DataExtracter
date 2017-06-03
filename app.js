@@ -5,6 +5,7 @@ const fs = require("fs")
 const path = require("path")
 const homedir = require("os").homedir()
 const extractor = require("./extractor.js")
+const { protectedFilesSaveAs, execVBS } = require("./helper.js")
 
 let abortExtracting = false
 
@@ -81,8 +82,8 @@ document.addEventListener("DOMContentLoaded", () => {
     extractor.writeCSVHeader(ws, encoding)
     const protectedFiles = []
     let processedCounter = 0
-    const span = document.getElementById("processed-indicate")
-    const len = files.length
+    let span = document.getElementById("processed-indicate")
+    let len = files.length
     const startTime = Date.now()
     for (let i = 0; i < len; i += 1) {
       if (abortExtracting) {
@@ -92,6 +93,23 @@ document.addEventListener("DOMContentLoaded", () => {
       processedCounter += 1
       span.innerHTML = `${processedCounter}/${len}`
     }
+
+    const ppfLen = protectedFiles.length
+    await protectedFilesSaveAs(protectedFiles)
+    const noppf = await execVBS()
+    const remainppf = []
+    processedCounter = 0
+    span = document.getElementById("processed-ppf-indicate")
+    len = noppf.length
+    for (let i = 0; i < noppf.length; i += 1) {
+      if (abortExtracting) {
+        break
+      }
+      const error = await processFile(noppf[i], ws, encoding, remainppf)
+      processedCounter += 1
+      span.innerHTML = `${processedCounter}/${len}`
+    }
+
     document.querySelector("#extracting-step i").classList.remove("loading")
     document.querySelector("#extracting-step").classList.add("completed")
     document.querySelector("#summary-step .description").innerHTML = `${(Date.now() - startTime) / 1000} Seconds`

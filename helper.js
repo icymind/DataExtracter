@@ -2,10 +2,12 @@ const os = require("os")
 const path = require("path")
 const fs = require("fs-extra")
 const globFolder = require("./extractor.js").globFolder
+const { exec } = require("child_process")
 
-const xlsxFolder = "protect-xlsx"
-// const saveAsFolder = "saveas"
-const xlsm = path.join(__dirname, "helper.xlsm")
+const xlsxFolderName = "protect-xlsx"
+const xlsmFname = "helper.xlsm"
+const vbsFname = "helper.vbs"
+const saveAsFolderName = "saveas"
 const template = `
 Option Explicit
 
@@ -20,7 +22,7 @@ Sub Helper()
   Dim objShell
 
   Set xlApp = CreateObject("Excel.Application")
-  Set xlBook = xlApp.Workbooks.Open("${path.join(os.tmpdir(), "helper.xlsm")}", 0, True)
+  Set xlBook = xlApp.Workbooks.Open("${path.join(os.tmpdir(), xlsmFname)}", 0, True)
   xlApp.Run "Main"
   xlApp.Quit
 
@@ -29,10 +31,10 @@ Sub Helper()
 
 End Sub
 `
-function generate() {
-  const p = path.join(os.tmpdir(), "helper.vbs")
+
+function generate(filePath) {
   return new Promise((resolve, reject) => {
-    fs.writeFile(p, template, (err) => {
+    fs.writeFile(filePath, template, (err) => {
       if (err) {
         reject(err)
       } else {
@@ -42,15 +44,14 @@ function generate() {
   })
 }
 
-async function copyProtectedFiles(files) {
+async function copyProtectedFiles(files, destFolder) {
   for (let i = 0, len = files.length; i < len; i += 1) {
-    await fs.copy(files[i], path.join(os.tmpdir(), xlsxFolder, path.basename(files[i])))
+    await fs.copy(files[i], path.join(destFolder, path.basename(files[i])))
   }
-  // await fs.mkdirs(path.join(os.tmpdir(), xlsxFolder, saveAsFolder))
 }
 
-function copyXLSM() {
-  return fs.copy(xlsm, path.join(os.tmpdir(), path.basename(xlsm)))
+function copyXLSM(filePath, destFolder) {
+  return fs.copy(filePath, path.join(destFolder, path.basename(filePath)))
 }
 
 async function protectedFilesSaveAs(f) {
@@ -58,13 +59,31 @@ async function protectedFilesSaveAs(f) {
   if (typeof f === "string") {
     files = await globFolder(f)
   }
-  await copyProtectedFiles(files)
-  await generate()
-  await copyXLSM()
+  await copyProtectedFiles(files, path.join(os.tmpdir(), xlsxFolderName))
+  await generate(path.join(os.tmpdir(), vbsFname))
+  await copyXLSM(path.join(__dirname, xlsmFname), os.tmpdir())
 }
-console.log(os.tmpdir())
-protectedFilesSaveAs("Z:\\protect")
+
+async function execVBS() {
+  const files = globFolder(path.join(os.tmpdir(), xlsxFolderName, saveAsFolderName))
+  return new Promise((resolve, reject) => {
+    exec(path.join(os.tmpdir(), vbsFname), (err, stdout, stderr) => {
+      if (err) {
+        reject(err)
+      } else {
+        resolve(files)
+      }
+    })
+  })
+}
+
+function cleanUp() {
+}
+// console.log(os.tmpdir())
+// protectedFilesSaveAs("Z:\\protect")
 
 module.exports = {
   protectedFilesSaveAs,
+  execVBS,
+  cleanUp,
 }
