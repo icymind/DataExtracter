@@ -77,7 +77,10 @@ async function execVBS() {
   })
 }
 
-function cleanUp() {
+async function cleanUp() {
+  await fs.remove(path.join(os.tmpdir(), vbsFname))
+  await fs.remove(path.join(os.tmpdir(), xlsmFname))
+  await fs.remove(path.join(os.tmpdir(), xlsxFolderName))
 }
 // console.log(os.tmpdir())
 // protectedFilesSaveAs("Z:\\protect")

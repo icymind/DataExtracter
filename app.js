@@ -5,7 +5,7 @@ const fs = require("fs")
 const path = require("path")
 const homedir = require("os").homedir()
 const extractor = require("./extractor.js")
-const { protectedFilesSaveAs, execVBS } = require("./helper.js")
+const { protectedFilesSaveAs, execVBS, cleanUp } = require("./helper.js")
 
 let abortExtracting = false
 
@@ -130,6 +130,7 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("abort-steps").disabled = true
     abortExtracting = false
     ws.end()
+    await cleanUp()
   })
 
   document.getElementById("about").addEventListener("click", () => {
