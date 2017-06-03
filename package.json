@@ -1,0 +1,40 @@
+{
+  "name": "data-extracter",
+  "productName": "Data Extracter",
+  "description": "data extracter for REI inc.",
+  "version": "0.0.1",
+  "author": "icymind <icymindt@gmail.com>",
+  "copyright": "© 2017, icymind inc.",
+  "homepage": "http://icymind.com",
+  "license": "MIT",
+  "main": "main.js",
+  "build": {
+    "appId": "com.icymind.rei",
+    "compression": "maximum",
+    "win": {
+      "icon": ""
+    },
+    "mac": {
+      "target": "zip"
+    }
+  },
+  "scripts": {
+    "start": "electron .",
+    "release": "build",
+    "release-win32": "build --win --ia32"
+  },
+  "dependencies": {
+    "exceljs": "^0.4.10",
+    "fs-extra": "^3.0.1",
+    "glob": "^7.1.2",
+    "iconv-lite": "^0.4.17",
+    "papaparse": "^4.3.2",
+    "xlsx": "^0.10.3"
+  },
+  "devDependencies": {
+    "chai": "^3.5.0",
+    "electron": "^1.7.0",
+    "electron-builder": "^18.3.5",
+    "mocha": "^3.2.0"
+  }
+}

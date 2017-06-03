@@ -1,0 +1,19 @@
+body {
+  width: 90%;
+  padding: 2% 1%;
+  margin: 0 auto;
+}
+
+#message .ui.list span {
+  margin-left: 1em;
+  /* margin-right: 0.5em; */
+}
+
+.ui.modal {
+  width: 100px;
+  padding: 30px;
+}
+
+.input button {
+  width: 168px;
+}

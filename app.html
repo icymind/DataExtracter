@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Data Extract</title>
+  <link rel="stylesheet" href="stylesheets/semantic.min.css">
+  <link rel="stylesheet" href="stylesheets/main.css">
+</head>
+<body>
+  <div class="ui text menu">
+    <a class="ui right dropdown item">
+      <i class="sidebar icon"></i>
+      <div class="menu">
+        <div id = "about" class="item">
+          <i class="teal info circle icon"></i>
+          About
+        </div>
+      </div>
+    </a>
+  </div>
+  <!-- <h3 class="ui header">Extract data from *.xlsx, *.xls, *.rtf files, then save all data to a csv file.</h3> -->
+  <div class="ui hidden divider"></div>
+  <div class="ui action fluid input">
+    <input id="dir-path" type="text">
+    <button id="src-folder-btn" class="ui teal right labeled icon button">
+      <i class="folder icon"></i>
+      Source Folder
+    </button>
+  </div>
+  <div class="ui hidden divider"></div>
+  <div class="ui action fluid input">
+    <input id="dir-path" type="text">
+    <button id="save-folder-btn" class="ui teal right labeled icon button">
+      <i class="folder icon"></i>
+      Save To
+    </button>
+  </div>
+  <div class="ui hidden divider"></div>
+  <button id="process-btn" class="ui teal right labeled icon button">
+    <i class="circle notched icon"></i>
+    Process
+  </button>
+  <div class="ui small extracting modal">
+    <h4 class="ui header">Extracting Data</h4>
+    <div class="ui fluid vertical steps">
+      <div id="extracting-step"class="step">
+        <i class="ui notched circle icon loading"></i>
+        <div class="content">
+          <div class="title">Extracting</div>
+          <div class="description">Processed files: <span id="processed-indicate"></span></div>
+        </div>
+      </div>
+      <div id="summary-step" class="step">
+        <i class="ui wait icon"></i>
+        <div class="content">
+          <div class="title">Time Taken:</div>
+          <div class="description"></div>
+        </div>
+      </div>
+    </div>
+    <button id="done-steps" class="ui teal right icon button" disabled>
+      Done
+    </button>
+  </div>
+  <div class="ui small about modal">
+    <h3 class="ui header">
+      Data Extracter v<span id="version"></span>
+    </h3>
+    <h5 class="ui header">
+      Extract data from *.xls, *.xlsx, *.rtf files, then save all data to a single csv file.
+    </h5>
+    <div class="ui icon list">
+      <div class="item">
+        <i class="ui mail icon"></i>
+        <div class="content">
+          <a id="mail" href="mailto:icymindt@gmail.com">icymindt@gmail.com</a>
+        </div>
+      </div>
+      <div class="icon item">
+        <i class="ui github icon"></i>
+        <div class="content">
+          <a href="https://github.com/icymind/Tunnel-Inspector">https://github.com/icymind/Tunnel-Inspector</a>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script>window.$ = window.jQuery = require("./jquery.min.js")</script>
+  <script src="semantic.min.js" defer></script>
+  <script src="app.js" defer></script>
+</body>
+</html>
