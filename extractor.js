@@ -9,7 +9,7 @@ const { CSVHeader } = require("./constants.js")
 
 function globFolder(folder) {
   return new Promise((resolve) => {
-    glob.glob(`${folder}/**/*.*`, { nocase: true }, (err, files) => {
+    glob.glob("/**/*.*", { nocase: true, root: folder }, (err, files) => {
       resolve(files)
     })
   })
