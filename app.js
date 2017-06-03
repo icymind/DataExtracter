@@ -9,7 +9,7 @@ const { protectedFilesSaveAs, execVBS, cleanUp } = require("./helper.js")
 
 let abortExtracting = false
 
-function processFile(file, ws, encoding, protectedFiles) {
+function processFile(file, ws, encoding, protectedFiles, type = "normal") {
   return new Promise((resolve) => {
     setTimeout(() => {
       const extname = path.extname(file)
@@ -20,6 +20,10 @@ function processFile(file, ws, encoding, protectedFiles) {
         obj = extractor.extractFromExcel(file)
       } else {
         obj.error = "unsupported format"
+      }
+      if (type === "ppf") {
+        const dir = path.dirname(path.dirname(file))
+        obj.array[0] = path.join(dir, path.basename(file))
       }
       if (!obj.error) {
         extractor.writeToCSV(ws, obj.array, encoding)
@@ -33,16 +37,33 @@ function processFile(file, ws, encoding, protectedFiles) {
   })
 }
 
-function toggleSteps(action) {
-  if (action === "show") {
-    document.getElementById("done-steps").disabled = true
-    document.getElementById("abort-steps").disabled = false
-    document.getElementById("summary-step").style.display = "none"
-    document.querySelector("#extracting-step i").classList.add("loading")
-    document.querySelector("#extracting-step").classList.remove("completed")
-    document.getElementById("resaving-protected-files-step").classList.add("disabled")
-    document.querySelector("#resaving-protected-files-step i").classList.remove("loading")
+function resetSteps() {
+  document.getElementById("done-steps").disabled = false
+  document.getElementById("abort-steps").disabled = true
+  abortExtracting = false
+  Array.from(document.querySelectorAll(".ui.steps .step")).forEach((step) => {
+    step.classList.add("disabled")
+    step.classList.remove("completed")
+    step.previousElementSibling.classList.remove("loading")
+    step.querySelector(".description").innerHTML = ""
+  })
+}
+
+function activeStep(id) {
+  const div = document.getElementById(id)
+  div.classList.remove("disabled")
+  if (id.indexOf("summary") < 0) {
+    div.previousElementSibling.classList.add("loading")
   }
+}
+
+function completedStep(id) {
+  const div = document.getElementById(id)
+  div.classList.add("completed")
+  div.previousElementSibling.classList.remove("loading")
+}
+
+function toggleStepsModal(action) {
   $(".extracting.modal").modal({
     dimmerSettings: {
       opacity: 0.2,
@@ -71,27 +92,34 @@ document.addEventListener("DOMContentLoaded", () => {
   })
 
   document.getElementById("done-steps").addEventListener("click", () => {
-    toggleSteps("hide")
+    toggleStepsModal("hide")
   })
+
   document.getElementById("process-btn").addEventListener("click", async () => {
     const srcFolder = document.getElementById("src-folder-btn").previousElementSibling.value
     const saveFolder = document.getElementById("save-folder-btn").previousElementSibling.value
     const files = await extractor.globFolder(srcFolder)
     if (!files) return
-    toggleSteps("show")
+
+    resetSteps()
+    toggleStepsModal("show")
+
     const ws = fs.createWriteStream(path.join(saveFolder, "data-extractor-out.csv"))
     const encoding = extractor.getEncoding()
     extractor.writeCSVHeader(ws, encoding)
-    const protectedFiles = []
-    let processedCounter = 0
+
     const span = document.getElementById("processed-indicate")
     const ppfspan = document.getElementById("resaved-ppf-indicate")
     const len = files.length
     let ppfLen = 0
+    const protectedFiles = []
+    let processedCounter = 0
+
+    activeStep("extracting-step")
     const startTime = Date.now()
     for (let i = 0; i < len; i += 1) {
       if (abortExtracting) {
-        break
+        return
       }
       const error = await processFile(files[i], ws, encoding, protectedFiles)
       if (/file is password-protected/i.test(error)) {
@@ -101,34 +129,28 @@ document.addEventListener("DOMContentLoaded", () => {
       processedCounter += 1
       span.innerHTML = `${processedCounter}/${len}`
     }
-    document.querySelector("#extracting-step i").classList.remove("loading")
-    document.querySelector("#extracting-step").classList.add("completed")
+    completedStep("extracting-step")
 
-    document.querySelector("#resaving-protected-files-step").classList.remove("disabled")
-    document.querySelector("#resaving-protected-files-step i").classList.add("loading")
+    activeStep("resaving-protected-files-step")
     await protectedFilesSaveAs(protectedFiles)
     const noppf = await execVBS()
     const remainppf = []
     processedCounter = 0
     for (let i = 0; i < noppf.length; i += 1) {
       if (abortExtracting) {
-        break
+        return
       }
-      const error = await processFile(noppf[i], ws, encoding, remainppf)
+      const error = await processFile(noppf[i], ws, encoding, remainppf, "ppf")
       if (error) {
         console.log(error)
       }
       processedCounter += 1
       ppfspan.innerHTML = `${processedCounter}/${ppfLen}`
     }
-    document.querySelector("#resaving-protected-files-step i").classList.remove("loading")
-    document.querySelector("#resaving-protected-files-step").classList.add("completed")
+    completedStep("resaving-protected-files-step")
 
+    activeStep("summary-step")
     document.querySelector("#summary-step .description").innerHTML = `${(Date.now() - startTime) / 1000} Seconds`
-    document.getElementById("summary-step").style.display = null
-    document.getElementById("done-steps").disabled = false
-    document.getElementById("abort-steps").disabled = true
-    abortExtracting = false
     ws.end()
     await cleanUp()
   })
