@@ -40,8 +40,8 @@ function toggleSteps(action) {
     document.getElementById("summary-step").style.display = "none"
     document.querySelector("#extracting-step i").classList.add("loading")
     document.querySelector("#extracting-step").classList.remove("completed")
-    document.getElementById("process-protected-files-step").classList.add("disabled")
-    document.querySelector("#process-protected-files-step i").classList.remove("loading")
+    document.getElementById("resaving-protected-files-step").classList.add("disabled")
+    document.querySelector("#resaving-protected-files-step i").classList.remove("loading")
   }
   $(".extracting.modal").modal({
     dimmerSettings: {
@@ -104,8 +104,8 @@ document.addEventListener("DOMContentLoaded", () => {
     document.querySelector("#extracting-step i").classList.remove("loading")
     document.querySelector("#extracting-step").classList.add("completed")
 
-    document.querySelector("#process-protected-files-step").classList.remove("disabled")
-    document.querySelector("#process-protected-files-step i").classList.add("loading")
+    document.querySelector("#resaving-protected-files-step").classList.remove("disabled")
+    document.querySelector("#resaving-protected-files-step i").classList.add("loading")
     await protectedFilesSaveAs(protectedFiles)
     const noppf = await execVBS()
     const remainppf = []
@@ -121,8 +121,8 @@ document.addEventListener("DOMContentLoaded", () => {
       processedCounter += 1
       ppfspan.innerHTML = `${processedCounter}/${ppfLen}`
     }
-    document.querySelector("#process-protected-files-step i").classList.remove("loading")
-    document.querySelector("#process-protected-files-step").classList.add("completed")
+    document.querySelector("#resaving-protected-files-step i").classList.remove("loading")
+    document.querySelector("#resaving-protected-files-step").classList.add("completed")
 
     document.querySelector("#summary-step .description").innerHTML = `${(Date.now() - startTime) / 1000} Seconds`
     document.getElementById("summary-step").style.display = null
