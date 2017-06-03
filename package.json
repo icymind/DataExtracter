@@ -12,10 +12,11 @@
     "appId": "com.icymind.rei",
     "compression": "maximum",
     "win": {
-      "icon": ""
+      "icon": "dataExtractor.ico"
     },
     "mac": {
-      "target": "zip"
+      "target": "zip",
+      "icon": "dataExtractor.icns"
     }
   },
   "scripts": {

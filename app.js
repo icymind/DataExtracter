@@ -81,6 +81,11 @@ document.addEventListener("DOMContentLoaded", () => {
     extractor.writeCSVHeader(ws, encoding)
     const protectedFiles = []
     let processedCounter = 0
+    let extractAllDataCounter = 0
+    let extractPartialDataCounter = 0
+    let notContainsSheetCounter = 0
+    let unsupportCounter = 0
+    let passwordProtectedCounter = 0
     const span = document.getElementById("processed-indicate")
     const len = files.length
     const startTime = Date.now()
@@ -89,6 +94,22 @@ document.addEventListener("DOMContentLoaded", () => {
         break
       }
       const error = await processFile(files[i], ws, encoding, protectedFiles)
+      switch (true) {
+      case !error:
+        extractAllDataCounter += 1
+        break
+      case error === "unsupported format":
+        unsupportCounter += 1
+        break
+      case /can not find worksheet/.test(error):
+        notContainsSheetCounter += 1
+        break
+      case /File is password-protected/i.test(error):
+        passwordProtectedCounter += 1
+        break
+      default:
+        extractPartialDataCounter += 1
+      }
       processedCounter += 1
       span.innerHTML = `${processedCounter}/${len}`
     }
