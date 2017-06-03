@@ -40,6 +40,8 @@ function toggleSteps(action) {
     document.getElementById("summary-step").style.display = "none"
     document.querySelector("#extracting-step i").classList.add("loading")
     document.querySelector("#extracting-step").classList.remove("completed")
+    document.getElementById("process-protected-files-step").classList.add("disabled")
+    document.querySelector("#process-protected-files-step i").classList.remove("loading")
   }
   $(".extracting.modal").modal({
     dimmerSettings: {
@@ -82,36 +84,46 @@ document.addEventListener("DOMContentLoaded", () => {
     extractor.writeCSVHeader(ws, encoding)
     const protectedFiles = []
     let processedCounter = 0
-    let span = document.getElementById("processed-indicate")
-    let len = files.length
+    const span = document.getElementById("processed-indicate")
+    const ppfspan = document.getElementById("processed-ppf-indicate")
+    const len = files.length
+    let ppfLen = 0
     const startTime = Date.now()
     for (let i = 0; i < len; i += 1) {
       if (abortExtracting) {
         break
       }
       const error = await processFile(files[i], ws, encoding, protectedFiles)
+      if (/file is password-protected/i.test(error)) {
+        ppfLen += 1
+        ppfLen.innerHTML = `0/${ppfLen}`
+      }
       processedCounter += 1
       span.innerHTML = `${processedCounter}/${len}`
     }
+    document.querySelector("#extracting-step i").classList.remove("loading")
+    document.querySelector("#extracting-step").classList.add("completed")
 
-    const ppfLen = protectedFiles.length
+    document.querySelector("#process-protected-files-step").classList.remove("disabled")
+    document.querySelector("#process-protected-files-step i").classList.add("loading")
     await protectedFilesSaveAs(protectedFiles)
     const noppf = await execVBS()
     const remainppf = []
     processedCounter = 0
-    span = document.getElementById("processed-ppf-indicate")
-    len = noppf.length
     for (let i = 0; i < noppf.length; i += 1) {
       if (abortExtracting) {
         break
       }
       const error = await processFile(noppf[i], ws, encoding, remainppf)
+      if (error) {
+        console.log(error)
+      }
       processedCounter += 1
-      span.innerHTML = `${processedCounter}/${len}`
+      ppfspan.innerHTML = `${processedCounter}/${ppfLen}`
     }
+    document.querySelector("#process-protected-files-step i").classList.remove("loading")
+    document.querySelector("#process-protected-files-step").classList.add("completed")
 
-    document.querySelector("#extracting-step i").classList.remove("loading")
-    document.querySelector("#extracting-step").classList.add("completed")
     document.querySelector("#summary-step .description").innerHTML = `${(Date.now() - startTime) / 1000} Seconds`
     document.getElementById("summary-step").style.display = null
     document.getElementById("done-steps").disabled = false
