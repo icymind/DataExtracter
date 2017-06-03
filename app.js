@@ -96,7 +96,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const error = await processFile(files[i], ws, encoding, protectedFiles)
       if (/file is password-protected/i.test(error)) {
         ppfLen += 1
-        ppfLen.innerHTML = `0/${ppfLen}`
+        ppfspan.innerHTML = `0/${ppfLen}`
       }
       processedCounter += 1
       span.innerHTML = `${processedCounter}/${len}`
