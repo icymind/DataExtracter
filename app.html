@@ -43,34 +43,36 @@
   <div class="ui small extracting modal">
     <h4 class="ui header">Extracting Data</h4>
     <div class="ui fluid vertical steps">
+      <div id="read-folder" class="step">
+        <i class="ui notched circle icon loading"></i>
+        <div class="content">
+          <div class="title">Read folder</div>
+          <div class="description">Files amount: <span id="total-files"></span></div>
+        </div>
+      </div>
       <div id="extracting-step"class="step">
         <i class="ui notched circle icon loading"></i>
         <div class="content">
-          <div class="title">Extracting</div>
+          <div class="title">Extract normal files</div>
           <div class="description">Processed files: <span id="processed-indicate"></span></div>
         </div>
       </div>
-      <div id="resaving-protected-files-step" class="step">
+      <div id="resaving-ppf-step" class="step">
         <i class="ui notched circle icon loading"></i>
         <div class="content">
-          <div class="title">reSaving password-protected files</div>
-          <div class="description">Saved files: <span id="resaved-ppf-indicate"></span></div>
+          <div class="title">Handle password-protected files</div>
+          <div class="description">
+            <p>Files amount: <span id="ppf-amount"></span></p>
+            <p>Get rid of password: <span id="resaved-ppf-indicate"></span></p>
+            <p>Extracting: <span id="processed-ppf-indicate"></span></p>
+          </div>
         </div>
       </div>
-      <div id="extracting-protected-files-step" class="step">
-        <i class="ui notched circle icon loading"></i>
-        <div class="content">
-          <div class="title">Extracting password-protected files</div>
-          <div class="description">Processed files: <span id="Processed-ppf-indicate"></span></div>
-        </div>
-      </div>
-      <div id="summary-step"class="step">
-        <i class="ui wait icon"></i>
-        <div class="content">
-          <div class="title">Summary</div>
-          <div class="description"></div>
-        </div>
-      </div>
+    </div>
+    <div class="ui message">
+      <div class="header">Summary</div>
+      <p><span id="summary-info"></span>
+      </p><p><span id="time-taken"></span></p>
     </div>
     <button id="abort-steps" class="ui teal right icon button">
       Abort

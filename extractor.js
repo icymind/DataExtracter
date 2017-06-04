@@ -7,9 +7,9 @@ const extractFromExcel = require("./extract-from-excel.js").extract
 const extractFromRtf = require("./extract-from-rtf.js").extract
 const { CSVHeader } = require("./constants.js")
 
-function globFolder(folder) {
+function globFolder(folder, filter = "*.*") {
   return new Promise((resolve) => {
-    glob.glob("/**/*.*", { nocase: true, root: folder }, (err, files) => {
+    glob.glob(`/**/${filter}`, { nocase: true, root: folder }, (err, files) => {
       resolve(files)
     })
   })

@@ -32,6 +32,10 @@ Sub Helper()
 End Sub
 `
 
+function getSavetoPath() {
+  return path.join(os.tmpdir(), xlsxFolderName, saveAsFolderName)
+}
+
 function generate(filePath) {
   return new Promise((resolve, reject) => {
     fs.writeFile(filePath, template, (err) => {
@@ -46,9 +50,13 @@ function generate(filePath) {
 
 async function copyProtectedFiles(files, destFolder) {
   await fs.remove(destFolder)
+  const newOldMap = new Map()
   for (let i = 0, len = files.length; i < len; i += 1) {
-    await fs.copy(files[i], path.join(destFolder, path.basename(files[i])))
+    const newPath = path.join(destFolder, path.basename(files[i]))
+    newOldMap.set(path.join(destFolder, saveAsFolderName, path.basename(files[i])), files[i])
+    await fs.copy(files[i], newPath)
   }
+  return newOldMap
 }
 
 function copyXLSM(filePath, destFolder) {
@@ -60,18 +68,19 @@ async function protectedFilesSaveAs(f) {
   if (typeof f === "string") {
     files = await globFolder(f)
   }
-  await copyProtectedFiles(files, path.join(os.tmpdir(), xlsxFolderName))
+  const newOldMap = await copyProtectedFiles(files, path.join(os.tmpdir(), xlsxFolderName))
   await generate(path.join(os.tmpdir(), vbsFname))
   await copyXLSM(path.join(__dirname, xlsmFname), os.tmpdir())
+  return newOldMap
 }
 
 async function execVBS() {
-  const files = globFolder(path.join(os.tmpdir(), xlsxFolderName, saveAsFolderName))
   return new Promise((resolve, reject) => {
     exec(path.join(os.tmpdir(), vbsFname), (err, stdout, stderr) => {
       if (err) {
         reject(err)
       } else {
+        const files = globFolder(path.join(os.tmpdir(), xlsxFolderName, saveAsFolderName))
         resolve(files)
       }
     })
@@ -90,4 +99,5 @@ module.exports = {
   protectedFilesSaveAs,
   execVBS,
   cleanUp,
+  getSavetoPath,
 }
